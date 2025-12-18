@@ -1,0 +1,13 @@
+build/
+test/esp/
+test/OVMF_VARS.fd
+test/serial.log
+test/*.ppm
+__pycache__/
+*.pyc
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.efi
