@@ -55,7 +55,7 @@ static void pad_after(CHAR16* s, int width) {
     if (n > 0) pad(n);
 }
 
-static const CHAR17* mem_type_name(UINT32 t) {
+static const CHAR16* mem_type_name(UINT32 t) {
     static const CHAR16* n[] = {
         L"reserved", L"loader code", L"loader data", L"bs code", L"bs data",
         L"rt code", L"rt data", L"conventional", L"unusable", L"acpi reclaim",
@@ -92,7 +92,6 @@ static const GUID_NAME gGuids[] = {
     { { 0xEB9D2D30, 0x2D88, 0x11D3, { 0x9A, 0x16, 0x00, 0x90, 0x27, 0x3F, 0xC1, 0x4D } }, L"ACPI 1.0 RSDP" },
     { { 0x8868E871, 0xE4F1, 0x11D3, { 0xBC, 0x22, 0x00, 0x80, 0xC7, 0x3C, 0x88, 0x81 } }, L"ACPI 2.0 RSDP" },
     { { 0xEB9D2D31, 0x2D88, 0x11D3, { 0x9A, 0x16, 0x00, 0x90, 0x27, 0x3F, 0xC1, 0x4D } }, L"SMBIOS" },
-    /* revisit */
     { { 0xF2FD1544, 0x9794, 0x4A2C, { 0x99, 0x2E, 0xE5, 0xBB, 0xCF, 0x20, 0xE3, 0x94 } }, L"SMBIOS3" },
     { { 0xEB9D2D2F, 0x2D88, 0x11D3, { 0x9A, 0x16, 0x00, 0x90, 0x27, 0x3F, 0xC1, 0x4D } }, L"MPS" },
     { { 0xB122A263, 0x3661, 0x4F68, { 0x99, 0x29, 0x78, 0xF8, 0xB0, 0xD6, 0x21, 0x80 } }, L"ESRT" },
@@ -188,7 +187,6 @@ static void config_tables(void) {
 static void gop_modes(EFI_BOOT_SERVICES* bs) {
     EFI_GRAPHICS_OUTPUT_PROTOCOL* g = NULL;
     UINT32 m;
-    /* revisit */
     EFI_STATUS s = ((EFI_LOCATE_PROTOCOL)bs->LocateProtocol)(
         (EFI_GUID*)&gEfiGraphicsOutputProtocolGuid, NULL, (void**)&g);
     if (EFI_ERROR(s) || !g || !g->Mode) {
@@ -284,3 +282,43 @@ static void memory_map(EFI_BOOT_SERVICES* bs) {
         if (d->Type < EfiMaxMemoryType) total[d->Type] += d->NumberOfPages;
         pages += d->NumberOfPages;
         if (d->Attribute & EFI_MEMORY_RUNTIME) {
+            p(L"  rt  "); hx(d->PhysicalStart, 16);
+            p(L"  "); hx(d->NumberOfPages * EFI_PAGE_SIZE, 12);
+            p(L"  "); p((CHAR16*)mem_type_name(d->Type));
+            p(L"  "); mem_attr(d->Attribute);
+            nl();
+        }
+        cur += dsize;
+        used += dsize;
+    }
+    p(L"  address space "); dec(pages * EFI_PAGE_SIZE / (1024 * 1024));
+    p(L" MiB (incl. reserved/MMIO)"); nl();
+    for (i = 0; i < EfiMaxMemoryType; i++) {
+        if (!total[i]) continue;
+        p(L"  "); p((CHAR16*)mem_type_name(i));
+        pad_after((CHAR16*)mem_type_name(i), 16);
+        p(L" "); dec(total[i] * EFI_PAGE_SIZE / (1024 * 1024)); p(L" MiB");
+        nl();
+    }
+    ((EFI_FREE_POOL)bs->FreePool)(mem);
+}
+
+EFI_STATUS EFIAPI efi_main(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE* SystemTable) {
+    gST = SystemTable;
+    gOut = SystemTable->ConOut;
+    if (!gOut) return EFI_UNSUPPORTED;
+
+    gOut->ClearScreen(gOut);
+    gOut->SetAttribute(gOut, 0x07);
+    banner();
+    conout_info();
+    loaded_image(SystemTable->BootServices, ImageHandle);
+    nl();
+    config_tables();
+    nl();
+    gop_modes(SystemTable->BootServices);
+    nl();
+    memory_map(SystemTable->BootServices);
+
+    return EFI_SUCCESS;
+}
