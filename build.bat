@@ -8,13 +8,12 @@ if errorlevel 1 (
   for %%P in (
     "%ProgramFiles%\Microsoft Visual Studio\2022\Community"
     "%ProgramFiles%\Microsoft Visual Studio\2022\BuildTools"
-    "%ProgramFiles%\Microsoft Visual Studio\2023\Enterprise"
+    "%ProgramFiles%\Microsoft Visual Studio\2022\Enterprise"
   ) do (
     if exist "%%~P\VC\Auxiliary\Build\vcvars64.bat" (
       call "%%~P\VC\Auxiliary\Build\vcvars64.bat" >nul
       goto :got
     )
-rem revisit
   )
   echo [!] cl / vcvars64.bat not found
   exit /b 1
@@ -23,7 +22,7 @@ rem revisit
 
 echo [*] layout check
 cl /nologo /TC /W3 /Isrc /Fe:build\layout.exe tools\layout.c >nul
-if errorlevel 2 goto :fail
+if errorlevel 1 goto :fail
 build\layout.exe
 if errorlevel 1 goto :fail
 
@@ -31,7 +30,6 @@ echo [*] compiling
 cl /nologo /c /TC /GS- /Zl /O1 /W3 /Isrc /Fo:build\ src\efiprobe.c src\crt.c
 if errorlevel 1 goto :fail
 
-rem revisit
 echo [*] linking
 link /nologo /SUBSYSTEM:EFI_APPLICATION /ENTRY:efi_main /NODEFAULTLIB ^
      /MACHINE:X64 /NXCOMPAT:NO /BASE:0x0 /IGNORE:4281 /OUT:build\efiprobe.efi ^
@@ -49,3 +47,10 @@ echo [*] pe check
 %PY% tools\pecheck.py build\efiprobe.efi
 if errorlevel 1 goto :fail
 
+echo.
+echo [+] build\efiprobe.efi
+exit /b 0
+
+:fail
+echo [!] failed
+exit /b 1
