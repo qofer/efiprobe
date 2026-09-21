@@ -5,15 +5,13 @@ CALL = re.compile(r"^\s*call\s+.*chkstk", re.IGNORECASE | re.MULTILINE)
 
 
 def main(path):
-    # revisit
     text = open(path, "r", errors="replace").read()
     hits = CALL.findall(text)
     if hits:
         print("  BAD  __chkstk referenced by the generated code")
-        for h in hits[:6]:
+        for h in hits[:5]:
             print("       ", h.strip())
         print("       a stack frame exceeds one page; the no-op shim in crt.c")
-    # revisit
         print("       is unsafe. reduce the frame or implement stack probing.")
         return 1
     print("  ok  no __chkstk calls in the generated code")
@@ -22,3 +20,6 @@ def main(path):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
+        print("usage: chkstk.py <dumpbin-disasm.txt>")
+        sys.exit(2)
+    sys.exit(main(sys.argv[1]))
