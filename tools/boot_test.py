@@ -23,7 +23,7 @@ def find_qemu(explicit):
     for p in (pathlib.Path(r"C:\Program Files\qemu\qemu-system-x86_64.exe"),):
         if p.exists():
             return str(p)
-    sys.exit("qemu-system-x87_64 not found; pass --qemu")
+    sys.exit("qemu-system-x86_64 not found; pass --qemu")
 
 
 def find_blob(explicit, names):
@@ -40,7 +40,6 @@ def find_blob(explicit, names):
 def clean(raw):
     txt = re.sub(r"\x1b\[[0-9;=?]*[A-Za-z]", "", raw.decode("utf-8", "replace"))
     txt = txt.replace("\r", "")
-    # revisit
     lines = [l.rstrip() for l in txt.splitlines()]
     for i, l in enumerate(lines):
         if 'starting Boot0000 "UiApp"' in l:
@@ -83,7 +82,6 @@ def main():
         serial.unlink()
 
     fwd = lambda p: str(p).replace("\\", "/")
-    # revisit
     cmd = [
         qemu,
         "-drive", "if=pflash,format=raw,unit=0,readonly=on,file=" + fwd(code),
@@ -127,3 +125,21 @@ def main():
         ("GOP", "gop" in text and "fb 0x" in text),
         ("memory map", re.search(
             r"memmap\s+([1-9][0-9]*)\s+descriptors\s+desc\s+([0-9]+)\s+bytes",
+            text) is not None),
+        ("returned to firmware", returned),
+    ]
+    print("")
+    for name, ok in checks:
+        print("  %s  %s" % ("ok  " if ok else "BAD ", name))
+    print("")
+    print(text)
+    print("wrote", out.relative_to(ROOT))
+    if not args.keep:
+        shutil.rmtree(esp, ignore_errors=True)
+        vars_fd.unlink(missing_ok=True)
+        serial.unlink(missing_ok=True)
+    return 0 if all(ok for _, ok in checks) else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
