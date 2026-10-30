@@ -85,7 +85,7 @@ efiprobe/
 │   ├── crt.c                 memcpy / memset / __chkstk shims
 │   └── efiprobe.c            the application: print helpers + 6 dump sections
 ├── tools/
-│   ├── layout.c              checks 10 struct sizes and 29 member offsets
+│   ├── layout.c              checks 9 struct sizes and 29 member offsets
 │   ├── pecheck.py            validates the linked PE (stdlib only)
 │   ├── chkstk.py             fails the build if __chkstk is ever referenced
 │   └── boot_test.py          boots the image under QEMU/OVMF, captures ConOut
@@ -142,7 +142,6 @@ get a pad wrong.
 | Section | Source | What it does |
 | --- | --- | --- |
 | `banner` | `EFI_SYSTEM_TABLE` | firmware vendor, revision, UEFI spec revision |
-TODO: expand this section
 | `conout` | `EFI_SIMPLE_TEXT_OUTPUT_PROTOCOL` | current mode, columns/rows, protocol address |
 | `loaded image` | `EFI_LOADED_IMAGE_PROTOCOL` | image base/size, code type, load options, device handle |
 | `config tables` | `EFI_CONFIGURATION_TABLE[]` | GUID, friendly name, table address (ACPI, SMBIOS, ESRT, …) |
@@ -287,7 +286,6 @@ nothing from EDK2 is exposed or required.
 
 Smallest thing that compiles, links and prints one line:
 
-TODO: expand this section
 ```c
 #include "efi.h"
 
@@ -433,3 +431,64 @@ boot test; run it once after any change to a protocol call or struct.
 Sample build output:
 
 ```
+[*] layout check
+  efi struct layout (x64, msvc)
+  ok   EFI_MEMORY_DESCRIPTOR Type                   0x0
+  ok   EFI_SYSTEM_TABLE   ConOut                 0x40
+  ok   EFI_BOOT_SERVICES  LocateProtocol         0x140
+  ... 29 offset checks
+  all offsets match uefi 2.x x64
+[*] compiling
+  efiprobe.c
+  crt.c
+[*] linking
+[*] stack probe check
+  ok  no __chkstk calls in the generated code
+[*] pe check
+  pe      0xC0  sig PE\0\0
+  machine 0x8664
+  magic   0x20B
+  subsys  10 EFI_APPLICATION
+  ok  valid freestanding x64 efi application
+[+] build\efiprobe.efi
+```
+
+Boot test output:
+
+```
+  ok    app banner
+  ok    config tables
+  ok    GOP
+  ok    memory map
+  ok    returned to firmware
+wrote example\ovmf.txt
+```
+
+The full 65-line capture is in [`example/ovmf.txt`](example/ovmf.txt).
+
+---
+
+## Release process
+
+CI at `.github/workflows/build.yml` builds on `windows-2022` on every push to
+`main` and uploads the image plus a `SHA256SUMS` as an artifact. `build.bat`
+locates `vcvars64.bat` itself, so the runner needs no extra setup.
+`workflow_dispatch` is enabled too.
+
+A release is cut by hand from a local build:
+
+```sh
+build.bat
+gh release create v0.2.0 build\efiprobe.efi LICENSE SHA256SUMS
+```
+
+`SHA256SUMS` is the checksum line for the built image. `gh release create`
+tags the current `main` and attaches the three assets; bump the banner version
+in `src/efiprobe.c` with the tag.
+
+---
+
+## License
+
+Unlicense — public domain. Take `src/efi.h`, drop it into your own tree and
+delete everything you don't need.
