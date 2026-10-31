@@ -1,0 +1,65 @@
+BdsDxe: loading Boot0001 "UEFI QEMU HARDDISK QM00001 " from PciRoot(0x0)/Pci(0x1,0x1)/Ata(Primary,Master,0x0)
+BdsDxe: starting Boot0001 "UEFI QEMU HARDDISK QM00001 " from PciRoot(0x0)/Pci(0x1,0x1)/Ata(Primary,Master,0x0)
+efiprobe 0.2  |  EDK II  rev 1.0  |  uefi spec 2.70
+------------------------------------------------------------
+conout      mode 2  cols 100 rows 31  conout @ 0x000000000E725FD0
+loaded image  base 0x000000000DF22000  size 0x00007000  code 01  opts 0  device 0x000000000E5C7D98
+
+config tables  10
+  EE4E5898-3914-4259-9D6E-DC7BD79403CF  -  @ 0x000000000F4EBA98
+  05AD34BA-6F02-4214-952E-4DA0398E2BB9  -  @ 0x000000000FE8B140
+  7739F24C-93D7-11D4-9A3A-0090273FC14D  -  @ 0x000000000F4E7018
+  4C19049F-4137-4DD3-9C10-8B97A83FFDFA  memory attributes  @ 0x000000000FE8AF00
+  49152E77-1ADA-4764-B7A2-7AFEFED95E8B  -  @ 0x000000000FE8B850
+  060CC026-4C0D-4DDA-8F41-595FEF00A502  -  @ 0x000000000F589018
+  EB9D2D31-2D88-11D3-9A16-0090273FC14D  SMBIOS  @ 0x000000000F588000
+  EB9D2D30-2D88-11D3-9A16-0090273FC14D  ACPI 1.0 RSDP  @ 0x000000000F77E000
+  8868E871-E4F1-11D3-BC22-0080C73C8881  ACPI 2.0 RSDP  @ 0x000000000F77E014
+  DCFA911D-26EB-469F-A220-38B7DC461220  -  @ 0x000000000E5C2018
+
+gop         mode 0 / 30  fb 0x0000000080000000  size 0x0000003E8000  cur 1280x800  bgra8
+    0:    1280x800  stride 1280  bgra8  *
+    1:    640x480  stride 640  bgra8
+    2:    800x480  stride 800  bgra8
+    3:    800x600  stride 800  bgra8
+    4:    832x624  stride 832  bgra8
+    5:    960x640  stride 960  bgra8
+    6:    1024x600  stride 1024  bgra8
+    7:    1024x768  stride 1024  bgra8
+    8:    1152x864  stride 1152  bgra8
+    9:    1152x870  stride 1152  bgra8
+    10:   1280x720  stride 1280  bgra8
+    11:   1280x760  stride 1280  bgra8
+    12:   1280x768  stride 1280  bgra8
+    13:   1280x960  stride 1280  bgra8
+    14:   1280x1024  stride 1280  bgra8
+    15:   1360x768  stride 1360  bgra8
+    16:   1366x768  stride 1366  bgra8
+    17:   1400x1050  stride 1400  bgra8
+    18:   1440x900  stride 1440  bgra8
+    19:   1600x900  stride 1600  bgra8
+    20:   1600x1200  stride 1600  bgra8
+    21:   1680x1050  stride 1680  bgra8
+    22:   1920x1080  stride 1920  bgra8
+    23:   1920x1200  stride 1920  bgra8
+
+memmap      105 descriptors  desc 48 bytes  ver 00000001  key 0x0000000000000A23
+  rt  0x000000000EA41000  0x0000000C1000  rt data  UC WC WT WB RT
+  rt  0x000000000F4ED000  0x000000100000  rt data  UC WC WT WB RT
+  rt  0x000000000F5ED000  0x000000100000  rt code  UC WC WT WB RT
+  rt  0x000000000FEF4000  0x000000084000  rt data  UC WC WT WB RT
+  rt  0x00000000FFC00000  0x000000400000  mmio  UC RT
+  address space 12547 MiB (incl. reserved/MMIO)
+  reserved         12288 MiB
+  loader code      0 MiB
+  loader data      0 MiB
+  bs code          3 MiB
+  bs data          38 MiB
+  rt code          1 MiB
+  rt data          2 MiB
+  conventional     207 MiB
+  acpi reclaim     0 MiB
+  acpi nvs         2 MiB
+  mmio             4 MiB
+BdsDxe: loading Boot0000 "UiApp" from Fv(7CB8BDC9-F8EB-4F34-AAEA-3EE4AF6516A1)/FvFile(462CAA21-7614-4503-836E-8AB6F4662331)
+BdsDxe: starting Boot0000 "UiApp" from Fv(7CB8BDC9-F8EB-4F34-AAEA-3EE4AF6516A1)/FvFile(462CAA21-7614-4503-836E-8AB6F4662331)
