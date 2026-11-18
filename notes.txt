@@ -1,0 +1,44 @@
+- GetMemoryMap needs two calls. the first one with size=0 returns
+  EFI_BUFFER_TOO_SMALL and fills in the size. allocating that exact size then
+  fails because AllocatePool itself adds a descriptor to the map, so add a few
+  descriptor slots of slack.
+- descriptor size is not sizeof(EFI_MEMORY_DESCRIPTOR). always walk by the
+  DescriptorSize the firmware returns. i got this wrong first and every second
+  line was garbage. confirmed on OVMF: it returns 48 for a 40-byte struct.
+- EFI_MEMORY_RUNTIME means it survives ExitBootServices. filtering on it is a
+  cheap way to see what the kernel will inherit.
+- the firmware revision in the system table is (major << 16) | minor, same as
+  Hdr.Revision. 0x0002000A is 2.10.
+- ConfigTable entries are GUID + pointer. ACPI 1.0 and 2.0 GUIDs differ only in
+  the first dword, easy to mix up.
+- QueryMode allocates the info buffer out of boot services; you have to FreePool
+  it. leaking it changes the next GetMemoryMap.
+- link wants /ENTRY:efi_main with no leading underscore on x64. /NODEFAULTLIB
+  plus tiny memcpy/memset/__chkstk shims in crt.c is enough to satisfy it.
+- /NXCOMPAT:NO. some firmware rejects images with DEP flags set.
+- /BASE:0x0 makes link emit LNK4281 about ASLR. harmless for an efi image,
+  silenced with /IGNORE:4281 so CI logs stay clean.
+- OutputString does not handle \n, it has to be \r\n explicitly.
+- QEMU's edk2-x86_64-code.fd is a pflash CODE volume, not a -bios ROM.
+  -bios fails with "could not load PC BIOS". it needs a writable VARS volume
+  alongside it (edk2-i386-vars.fd works, copy it first).
+- OVMF's console is on the serial port. -serial file: captures the whole
+  ConOut stream as text, which beats a screendump/ocr. -display none still
+  gives the app a real ConOut.
+- the address-space total includes reserved/MMIO above 4 GiB, so it is not the
+  RAM size. on a 256 MiB OVMF guest it reads 12547 MiB with 207 MiB
+  conventional. relabelled rather than "fixed" because the sum is correct.
+- startup.nsh does not run when OVMF boots BOOTX64.EFI directly. keep the
+  removable-media path; the shell fallback is just a hedge.
+- GetMemoryMap can return EFI_BUFFER_TOO_SMALL on the *second* call too, not
+  just the sizing call: AllocatePool itself grows the map. the retry loop frees
+  the old buffer, adds slack from the returned size and caps at 8 attempts.
+- QueryMode failures print the mode number and status instead of being skipped;
+  if firmware handed back an info buffer alongside the error it is still freed.
+  a diagnostic tool should not hide a query it could not make.
+- crt.c has a no-op __chkstk. that is only safe while no frame needs page
+  probing, so build.bat disassembles both objects and tools/chkstk.py fails the
+  build on any call to it.
+- CHAR16 is wchar_t. msvc x64 only, 16 bits. not a portable uefi header.
+- layout.c checks 9 sizes and 29 selected offsets, not every member of every
+  protocol. the offsets it checks are the ones the app calls.
